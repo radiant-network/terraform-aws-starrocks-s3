@@ -9,7 +9,7 @@ resource "aws_dlm_lifecycle_policy" "ebs_snapshots" {
       Starrocks_Backup = "true"
     }
 
-    schedules {
+    schedule {
       name = "daily-snapshot"
 
       tags_to_add = {
