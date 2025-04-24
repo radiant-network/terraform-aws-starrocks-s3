@@ -4,7 +4,7 @@ sudo dnf install -y $JAVA_PACKAGE-devel mariadb105 || (sleep 120 ; sudo dnf inst
 
 sudo su
 
-cd /tmp
+cd /opt
 sudo wget --quiet https://releases.starrocks.io/starrocks/StarRocks-${starrocks_version}-centos-amd64.tar.gz
 sudo tar -xzvf StarRocks-${starrocks_version}-centos-amd64.tar.gz
 

@@ -15,7 +15,7 @@ EOF
 
 sudo sysctl -p
 
-cd /tmp
+cd /opt
 sudo wget --quiet https://releases.starrocks.io/starrocks/StarRocks-${starrocks_version}-centos-amd64.tar.gz
 sudo tar -xzvf StarRocks-${starrocks_version}-centos-amd64.tar.gz
 
