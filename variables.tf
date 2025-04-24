@@ -18,9 +18,6 @@ variable "vpc_id" {
 variable "subnet_id" {
 }
 
-variable "bastion_sg" {
-}
-
 variable "domain_name" {
 }
 
