@@ -14,7 +14,7 @@ resource "aws_lb_target_group" "frontend_tg" {
 }
 
 resource "aws_lb_target_group_attachment" "frontend_attachment" {
-  for_each         = { for idx, id in aws_instance.star_rocks_frontend.*.private_ip : idx => id }
+  for_each         = { for idx, id in aws_instance.star_rocks_frontend.*.id : idx => id }
   target_group_arn = aws_lb_target_group.frontend_tg.arn
   target_id        = each.value
 }
