@@ -24,6 +24,8 @@ data "aws_kms_key" "ebs_kms_key" {
   key_id = "alias/aws/ebs"
 }
 
+data "aws_caller_identity" "current" {}
+
 data "aws_vpc" "target_vpc" {
   id = var.vpc_id
 }
@@ -118,7 +120,7 @@ resource "aws_instance" "star_rocks_grafana" {
     bucket = "${var.starrocks_bucket}"
     pw_secret = "${var.project}-${var.environment}-grafana-admin-pw"
   })
-  iam_instance_profile   = aws_iam_instance_profile.grafana_instance_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.monitoring_instance_profile.name
   vpc_security_group_ids = [aws_security_group.grafana_sg.id]
   subnet_id              = var.subnet_id
   key_name               = var.ssh_key_name
@@ -155,7 +157,7 @@ resource "aws_instance" "star_rocks_prometheus" {
     cn_tag = "${var.project}-cn"
     fe_tag = "${var.project}-fe"
   })
-  iam_instance_profile   = aws_iam_instance_profile.grafana_instance_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.monitoring_instance_profile.name
   vpc_security_group_ids = [aws_security_group.prometheus_sg.id]
   subnet_id              = var.subnet_id
   key_name               = var.ssh_key_name

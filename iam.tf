@@ -62,8 +62,8 @@ resource "aws_iam_instance_profile" "star_rocks_instance_profile" {
   role = aws_iam_role.star_rocks_role.name
 }
 
-resource "aws_iam_role" "grafana_role" {
-  name        = "${var.project}-${var.environment}-grafana-role"
+resource "aws_iam_role" "monitoring_role" {
+  name        = "${var.project}-${var.environment}-monitoring-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -79,9 +79,9 @@ resource "aws_iam_role" "grafana_role" {
   })
 }
 
-resource "aws_iam_policy" "grafana_policy" {
-  name        = "${var.project}-${var.environment}-grafana-policy"
-  description = "Allows Star Rocks Grafana"
+resource "aws_iam_policy" "monitoring_policy" {
+  name        = "${var.project}-${var.environment}-monitoring-policy"
+  description = "Allows Star Rocks monitoring"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -119,26 +119,26 @@ resource "aws_iam_policy" "grafana_policy" {
           "secretsmanager:GetSecretValue"
         ]
         Resource = [
-          "${aws_secretsmanager_secret.grafana_admin_pw.arn}"
+          "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${aws_secretsmanager_secret.grafana_admin_pw.name}*"
         ]
       }
     ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "grafana_attach" {
-  role       = aws_iam_role.grafana_role.name
-  policy_arn = aws_iam_policy.grafana_policy.arn
+resource "aws_iam_role_policy_attachment" "monitoring_attach" {
+  role       = aws_iam_role.monitoring_role.name
+  policy_arn = aws_iam_policy.monitoring_policy.arn
 }
 
-resource "aws_iam_role_policy_attachment" "grafana_ssm_attach" {
-  role = aws_iam_role.grafana_role.name
+resource "aws_iam_role_policy_attachment" "monitoring_ssm_attach" {
+  role = aws_iam_role.monitoring_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_iam_instance_profile" "grafana_instance_profile" {
-  name = "${var.project}-${var.environment}-grafana-ip"
-  role = aws_iam_role.grafana_role.name
+resource "aws_iam_instance_profile" "monitoring_instance_profile" {
+  name = "${var.project}-${var.environment}-monitoring-ip"
+  role = aws_iam_role.monitoring_role.name
 }
 
 resource "aws_iam_role" "dlm_role" {
