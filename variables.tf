@@ -21,6 +21,14 @@ variable "subnet_id" {
 variable "domain_name" {
 }
 
+variable "private_dns_zone" {
+  default = true
+}
+
+variable "internal_nlb" {
+  default = true
+}
+
 variable "root_volume_size_gb" {
   default = "30"
 }

@@ -1,6 +1,6 @@
 data "aws_route53_zone" "private_dns_zone" {
     name = "${var.domain_name}."
-    private_zone = true
+    private_zone = var.private_dns_zone
 }
 
 resource "aws_route53_record" "private_star_rocks_dns" {
