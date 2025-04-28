@@ -1,0 +1,83 @@
+variable "environment" {
+}
+
+variable "region" {
+  default = "us-east-1"
+}
+
+variable "project" {
+    default = "star-rocks"
+}
+
+variable "starrocks_bucket" {
+}
+
+variable "vpc_id" {
+}
+
+variable "subnet_id" {
+}
+
+variable "domain_name" {
+}
+
+variable "private_dns_zone" {
+  default = true
+}
+
+variable "internal_nlb" {
+  default = true
+}
+
+variable "root_volume_size_gb" {
+  default = "30"
+}
+
+variable "frontend_volume_size_gb" {
+  default = "150"
+}
+
+variable "cn_volume_size_gb" {
+  default = "950"
+}
+
+variable "compute_node_instance_count" {
+  default = "3"
+}
+
+variable "compute_node_instance_type" {
+  default = "r6id.4xlarge"
+}
+
+variable "compute_node_heap_size" {
+  default = "124000"
+}
+
+variable "frontend_instance_count" {
+  default = "1"
+}
+
+variable "frontend_instance_type" {
+  default = "m6i.2xlarge"
+}
+
+variable "frontend_heap_size" {
+  default = "28000"
+}
+
+variable "monitoring_instance_type" {
+  default = "m6i.large"
+}
+
+variable "star_rocks_version" {
+  default = "3.3.11"
+}
+
+variable "starrocks_data_path" {
+  default = "/opt/starrocks/"
+}
+
+variable "ssh_key_name" {
+  default = "devops"
+}
+

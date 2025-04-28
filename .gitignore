@@ -1,0 +1,5 @@
+.terraform*
+plan.tfplan
+*-conf
+.python-version
+compare-csv.py
