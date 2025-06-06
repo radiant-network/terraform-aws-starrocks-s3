@@ -1,25 +1,3 @@
-
-data "aws_ami" "al2023" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  filter {
-    name = "architecture"
-    values = ["x86_64"]
-  }
-
-  owners = ["137112412989"]
-}
-
 data "aws_kms_key" "ebs_kms_key" {
   key_id = "alias/aws/ebs"
 }
@@ -32,7 +10,7 @@ data "aws_vpc" "target_vpc" {
 
 resource "aws_instance" "star_rocks_compute_nodes" {
   count = var.compute_node_instance_count
-  ami                    = data.aws_ami.al2023.id
+  ami                    = var.ami_id
   instance_type          = var.monitoring_instance_type
   user_data = templatefile("${path.module}/templates/compute_node_startup.sh.tpl", {
     starrocks_version        = var.star_rocks_version

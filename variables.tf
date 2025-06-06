@@ -12,6 +12,11 @@ variable "project" {
 variable "starrocks_bucket" {
 }
 
+# Amazon Linux 2023 HVM x86_64
+variable "ami_id" {
+
+}
+
 variable "vpc_id" {
 }
 
