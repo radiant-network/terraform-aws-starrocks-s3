@@ -12,6 +12,11 @@ variable "project" {
 variable "starrocks_bucket" {
 }
 
+# Amazon Linux 2023 HVM x86_64
+variable "ami_id" {
+
+}
+
 variable "vpc_id" {
 }
 
@@ -79,5 +84,9 @@ variable "starrocks_data_path" {
 
 variable "ssh_key_name" {
   default = "devops"
+}
+
+variable "additional_policy_arns" {
+  default = []
 }
 
