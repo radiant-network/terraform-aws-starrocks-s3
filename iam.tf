@@ -57,6 +57,13 @@ resource "aws_iam_role_policy_attachment" "ssm_attach" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy_attachment" "additional_policy_attachments" {
+  for_each = toset(var.additional_policy_arns)
+
+  role       = aws_iam_role.star_rocks_role.name
+  policy_arn = each.value
+}
+
 resource "aws_iam_instance_profile" "star_rocks_instance_profile" {
   name = "${var.project}-${var.environment}-ip"
   role = aws_iam_role.star_rocks_role.name

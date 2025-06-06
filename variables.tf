@@ -81,3 +81,7 @@ variable "ssh_key_name" {
   default = "devops"
 }
 
+variable "additional_policies_arns" {
+  default = []
+}
+
