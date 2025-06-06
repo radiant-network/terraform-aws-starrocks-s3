@@ -58,10 +58,10 @@ resource "aws_iam_role_policy_attachment" "ssm_attach" {
 }
 
 resource "aws_iam_role_policy_attachment" "additional_policy_attachments" {
-  for_each = var.additional_policy_arns
+  count = length(var.additional_policy_arns)
 
   role       = aws_iam_role.star_rocks_role.name
-  policy_arn = each.value
+  policy_arn = var.additional_policy_arns[count.index]
 }
 
 resource "aws_iam_instance_profile" "star_rocks_instance_profile" {
