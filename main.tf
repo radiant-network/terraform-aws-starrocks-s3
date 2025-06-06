@@ -51,7 +51,7 @@ resource "aws_instance" "star_rocks_compute_nodes" {
 
 resource "aws_instance" "star_rocks_frontend" {
   count = var.frontend_instance_count
-  ami                    = data.aws_ami.al2023.id
+  ami                    = var.ami_id
   instance_type          = var.monitoring_instance_type
   user_data = templatefile("${path.module}/templates/frontend_startup.sh.tpl", {
     starrocks_version        = var.star_rocks_version
@@ -91,7 +91,7 @@ resource "aws_instance" "star_rocks_frontend" {
 }
 
 resource "aws_instance" "star_rocks_grafana" {
-  ami                    = data.aws_ami.al2023.id
+  ami                    = var.ami_id
   instance_type          = var.monitoring_instance_type
   user_data = templatefile("${path.module}/templates/grafana_startup.sh.tpl", {
     prometheus_ip = aws_instance.star_rocks_prometheus.private_ip
@@ -129,7 +129,7 @@ resource "aws_instance" "star_rocks_grafana" {
 
 
 resource "aws_instance" "star_rocks_prometheus" {
-  ami                    = data.aws_ami.al2023.id
+  ami                    = var.ami_id
   instance_type          = var.monitoring_instance_type
   user_data              = templatefile("${path.module}/templates/prometheus_startup.sh.tpl", {
     cn_tag = "${var.project}-cn"
