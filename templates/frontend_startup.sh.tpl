@@ -65,6 +65,7 @@ priority_networks=${vpc_cidr}
 
 mysql_service_nio_enabled = true
 enable_collect_query_detail_info = true
+enable_udf = true
 
 sys_log_delete_age = 3d
 sys_log_roll_num = 5
