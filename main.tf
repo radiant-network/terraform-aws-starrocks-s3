@@ -11,7 +11,7 @@ data "aws_vpc" "target_vpc" {
 resource "aws_instance" "star_rocks_compute_nodes" {
   count = var.compute_node_instance_count
   ami                    = var.ami_id
-  instance_type          = var.monitoring_instance_type
+  instance_type          = var.compute_node_instance_type
   user_data = templatefile("${path.module}/templates/compute_node_startup.sh.tpl", {
     starrocks_version        = var.star_rocks_version
     starrocks_data_path = var.starrocks_data_path
@@ -52,7 +52,7 @@ resource "aws_instance" "star_rocks_compute_nodes" {
 resource "aws_instance" "star_rocks_frontend" {
   count = var.frontend_instance_count
   ami                    = var.ami_id
-  instance_type          = var.monitoring_instance_type
+  instance_type          = var.frontend_instance_type
   user_data = templatefile("${path.module}/templates/frontend_startup.sh.tpl", {
     starrocks_version        = var.star_rocks_version
     starrocks_data_path = var.starrocks_data_path
