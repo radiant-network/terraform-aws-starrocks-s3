@@ -205,7 +205,7 @@ resource "aws_instance" "upgrade_compute_nodes" {
   }
 }
 
-resource "aws_instance" "star_rocks_frontend" {
+resource "aws_instance" "upgrade_star_rocks_frontend" {
   count = var.star_rocks_upgrade_version != "" ? var.frontend_instance_count : 0
   ami                    = var.ami_id
   instance_type          = var.monitoring_instance_type
