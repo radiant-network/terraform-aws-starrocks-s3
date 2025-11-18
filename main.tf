@@ -198,7 +198,7 @@ resource "aws_instance" "upgrade_compute_nodes" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-cn-${var.environment}"
+    Name                 = "${var.project}-cn-${var.environment}-upgrade"
     Application          = "${var.project}-cn"
     Description          = "Instance for ${var.project}"
     Starrocks_Backup  = "true"
@@ -239,7 +239,7 @@ resource "aws_instance" "upgrade_star_rocks_frontend" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-fe-${var.environment}"
+    Name                 = "${var.project}-fe-${var.environment}-upgrade"
     Application          = "${var.project}-fe"
     Description          = "Instance for ${var.project}"
     Starrocks_Backup  = "true"
