@@ -78,6 +78,10 @@ variable "star_rocks_version" {
   default = "3.3.11"
 }
 
+variable "star_rocks_upgrade_version" {
+  default = ""
+}
+
 variable "starrocks_data_path" {
   default = "/opt/starrocks/"
 }

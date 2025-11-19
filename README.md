@@ -16,6 +16,19 @@ where the default for `PORT` is `9030`. After that, you can access Star Rocks us
 mysql -h 127.0.0.1 -P 9030 -u root
 ```
 
+## Upgrade Process
+Currently full blue/green is not supported. Instead, we do a modified canary process for upgrades.
+1. Change the value for `starrocks_upgrade_version` in `variables.tfvars` for your environment.
+2. Create a PR, get reviews, and merge.
+3. This will create a new set of instances with the new version (upgrade or downgrade).
+4. Backup the old Frontend's metadata manually through SSM
+5. Migrate the metadata to the new Frontend manually through SSM
+6. Verify new CNs joined the old FE correctly.
+7. Verify new FE has metadata successfully.
+8. Now set the `starrocks_upgrade_version` to blank, and the `starrocks_verison` to the new version.
+9. This will delete the upgraded instances and the old version's instances. A new set of upgraded instances will be created.
+10. Migrate the metadata on the new FE again.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
