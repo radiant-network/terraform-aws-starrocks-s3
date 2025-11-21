@@ -62,7 +62,7 @@ resource "aws_instance" "star_rocks_frontend" {
     vpc_cidr = data.aws_vpc.target_vpc.cidr_block
     java_heap_size_mb = var.frontend_heap_size
     is_follower = count.index == 0 ? "false" : "true"
-    leader_ip = count.index == 0 ? "" : aws_instance.frontend[0].private_ip
+    leader_ip = count.index == 0 ? "" : aws_instance.star_rocks_frontend[0].private_ip
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
