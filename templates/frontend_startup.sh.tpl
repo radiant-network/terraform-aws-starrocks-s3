@@ -102,7 +102,7 @@ ExecStartPre=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; t
             echo "Leader is ready!"; \
             exit 0; \
         fi; \
-        echo "Waiting for leader... (\$i/60)"; \
+        echo "Waiting for leader..."; \
         sleep 5; \
     done; \
     echo "ERROR: Leader not ready after 5 minutes"; \
@@ -134,15 +134,3 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable starrocks-fe
 sudo systemctl start starrocks-fe
-
-# Add backup cronjob
-sudo tar -czf /tmp/fe_meta_backup_$(date +%Y-%m-%d-%H-%M-%S).tar.gz -C /opt/starrocks/fe meta/
-aws s3 cp /tmp/fe_meta_backup_*.tar.gz s3://${bucket}/backup/
-rm -f /tmp/fe_meta_backup_*.tar.gz
-
-# Restore metadata on new instance
-sudo systemctl stop starrocks-fe
-aws s3 cp s3://radiant-tst-star-rocks-qa/backup/fe_meta_backup_2025-11-20-16-12-33.tar.gz /tmp/
-sudo mv /opt/starrocks/fe/meta /opt/starrocks/fe/meta.old
-sudo tar -xzf /tmp/fe_meta_backup_2025-11-20-16-12-33.tar.gz -C /opt/starrocks/fe/
-sudo mv /opt/starrocks/fe/meta.old/image/ROLE /opt/starrocks/fe/meta/image/ROLE
