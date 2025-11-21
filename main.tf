@@ -55,14 +55,15 @@ resource "aws_instance" "star_rocks_frontend" {
   ami                    = var.ami_id
   instance_type          = var.frontend_instance_type
   user_data = templatefile("${path.module}/templates/frontend_startup.sh.tpl", {
+    # If upgrading, follower nodes will be upgraded first
     starrocks_version        = var.star_rocks_upgrade_version != "" && count.index != 0 ? var.star_rocks_upgrade_version : var.star_rocks_version
     starrocks_data_path = var.starrocks_data_path
     region = var.region
     bucket = "${var.starrocks_bucket}"
     vpc_cidr = data.aws_vpc.target_vpc.cidr_block
     java_heap_size_mb = var.frontend_heap_size
-    is_follower = count.index == 0 ? "false" : "true"
-    leader_ip = count.index == 0 ? "" : aws_instance.star_rocks_frontend[0].private_ip
+    is_follower = count.index == 0 ? "true" : "false"
+    leader_ip = aws_route53_record.private_star_rocks_dns.fqdn
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
@@ -167,58 +168,60 @@ resource "aws_instance" "star_rocks_prometheus" {
   }
 }
 
-# resource "aws_instance" "upgrade_compute_nodes" {
-#   count = var.star_rocks_upgrade_version != "" ? var.compute_node_instance_count : 0
-#   ami                    = var.ami_id
-#   instance_type          = var.monitoring_instance_type
-#   user_data = templatefile("${path.module}/templates/compute_node_startup.sh.tpl", {
-#     starrocks_version        = var.star_rocks_upgrade_version
-#     starrocks_data_path = var.starrocks_data_path
-#     fe_host = aws_route53_record.private_star_rocks_dns.fqdn
-#     fe_query_port = 9030
-#     vpc_cidr = data.aws_vpc.target_vpc.cidr_block
-#     java_heap_size_mb = var.compute_node_heap_size
-#   })
-#   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
-#   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
-#   subnet_id              = var.subnet_id
-#   key_name               = var.ssh_key_name
-#   ebs_optimized          = true
-#   monitoring             = true
-#   volume_tags = {
-#     Name              = "${var.project}-cn-${var.environment}-volume"
-#     Application       = var.project
-#     Description       = "Instance for ${var.project}"
-#     Starrocks_Backup  = "true"
-#   }
-#   root_block_device {
-#     volume_type = "standard"
-#     volume_size = var.cn_volume_size_gb
-#     encrypted   = "true"
-#   }
-#   metadata_options {
-#     http_endpoint = "enabled"
-#     http_tokens   = "required"
-#   }
-#   tags = {
-#     Name                 = "${var.project}-cn-${var.environment}-upgrade"
-#     Application          = "${var.project}-cn"
-#     Description          = "Instance for ${var.project}"
-#     Starrocks_Backup  = "true"
-#   }
-# }
+resource "aws_instance" "upgrade_compute_nodes" {
+  count = var.star_rocks_upgrade_version != "" ? 1 : 0
+  ami                    = var.ami_id
+  instance_type          = var.monitoring_instance_type
+  user_data = templatefile("${path.module}/templates/compute_node_startup.sh.tpl", {
+    starrocks_version        = var.star_rocks_upgrade_version
+    starrocks_data_path = var.starrocks_data_path
+    fe_host = aws_route53_record.private_star_rocks_dns.fqdn
+    fe_query_port = 9030
+    vpc_cidr = data.aws_vpc.target_vpc.cidr_block
+    java_heap_size_mb = var.compute_node_heap_size
+  })
+  iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
+  vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
+  subnet_id              = var.subnet_id
+  key_name               = var.ssh_key_name
+  ebs_optimized          = true
+  monitoring             = true
+  volume_tags = {
+    Name              = "${var.project}-cn-${var.environment}-volume"
+    Application       = var.project
+    Description       = "Instance for ${var.project}"
+    Starrocks_Backup  = "true"
+  }
+  root_block_device {
+    volume_type = "standard"
+    volume_size = var.cn_volume_size_gb
+    encrypted   = "true"
+  }
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+  tags = {
+    Name                 = "${var.project}-cn-${var.environment}-upgrade"
+    Application          = "${var.project}-cn"
+    Description          = "Instance for ${var.project}"
+    Starrocks_Backup  = "true"
+  }
+}
 
-# resource "aws_instance" "upgrade_star_rocks_frontend" {
-#   count = var.star_rocks_upgrade_version != "" ? var.frontend_instance_count : 0
+# resource "aws_instance" "star_rocks_frontend_followers" {
+#   count =  var.frontend_instance_count - 1 # Subtract the leader
 #   ami                    = var.ami_id
 #   instance_type          = var.monitoring_instance_type
 #   user_data = templatefile("${path.module}/templates/frontend_startup.sh.tpl", {
-#     starrocks_version        = var.star_rocks_upgrade_version
+#     starrocks_version        = var.star_rocks_upgrade_version != "" ? var.star_rocks_upgrade_version : var.star_rocks_version
 #     starrocks_data_path = var.starrocks_data_path
 #     region = var.region
 #     bucket = "${var.starrocks_bucket}"
 #     vpc_cidr = data.aws_vpc.target_vpc.cidr_block
 #     java_heap_size_mb = var.frontend_heap_size
+#     is_follower = "true"
+#     leader_ip = aws_instance.star_rocks_frontend[0].private_ip
 #   })
 #   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
 #   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
