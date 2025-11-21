@@ -62,7 +62,7 @@ resource "aws_instance" "star_rocks_frontend" {
     bucket = "${var.starrocks_bucket}"
     vpc_cidr = data.aws_vpc.target_vpc.cidr_block
     java_heap_size_mb = var.frontend_heap_size
-    is_follower = count.index == 0 ? "true" : "false"
+    is_follower = count.index == 0 ? "false" : "true"
     leader_ip = aws_route53_record.private_star_rocks_dns.fqdn
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
