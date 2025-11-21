@@ -96,9 +96,9 @@ Environment="LD_LIBRARY_PATH=/usr/lib/jvm/$JAVA_PACKAGE.x86_64/lib/server/"
 Environment="JAVA_OPTS=-Djava.net.preferIPv4Stack=true -Xmx${java_heap_size_mb}m -XX:+UseG1GC -Djava.security.policy=${starrocks_data_path}/conf/udf_security.policy"
 ExecStartPre=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then \
     LEADER=$(cat ${starrocks_data_path}/fe/.follower_mode); \
-    echo "Waiting for leader $LEADER to be ready..."; \
+    echo "Waiting for leader ${leader_ip} to be ready..."; \
     for i in {1..60}; do \
-        if mysql -h $LEADER -P 9030 -u root -e "SELECT 1" 2>/dev/null; then \
+        if mysql -h ${leader_ip} -P 9030 -u root -e "SELECT 1" 2>/dev/null; then \
             echo "Leader is ready!"; \
             exit 0; \
         fi; \
@@ -109,20 +109,17 @@ ExecStartPre=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; t
     exit 1; \
 fi'
 ExecStart=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then \
-    LEADER=$(cat ${starrocks_data_path}/fe/.follower_mode); \
-    echo "Starting as follower, joining leader at $LEADER:9010"; \
-    ${starrocks_data_path}/fe/bin/start_fe.sh --helper $LEADER:9010; \
+    echo "Starting as follower, joining leader at ${leader_ip}:9010"; \
+    ${starrocks_data_path}/fe/bin/start_fe.sh --helper ${leader_ip}:9010; \
 else \
     echo "Starting as leader"; \
     ${starrocks_data_path}/fe/bin/start_fe.sh; \
 fi'
 ExecStartPost=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then \
-    LEADER=$(cat ${starrocks_data_path}/fe/.follower_mode); \
-    MY_IP=$(hostname -I | awk "{print $1}"); \
     echo "Waiting for FE to start..."; \
     sleep 30; \
     echo "Registering with leader as follower..."; \
-    mysql -h $LEADER -P 9030 -u root -e "ALTER SYSTEM ADD FOLLOWER \"$MY_IP:9010\";" || echo "Failed to register, may already be registered"; \
+    mysql -h ${leader_ip} -P 9030 -u root -e "ALTER SYSTEM ADD FOLLOWER \"$(hostname -I | awk "{print $1}"):9010\";" || echo "Failed to register, may already be registered"; \
 fi'
 ExecStop=${starrocks_data_path}/fe/bin/stop_fe.sh
 Restart=always
