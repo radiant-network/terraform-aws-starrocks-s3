@@ -75,6 +75,14 @@ enable_profile_log = false
 audit_log_delete_age = 14d
 EOF
 
+IS_FOLLOWER="${is_follower}"
+LEADER_IP="${leader_ip}"
+
+if [ "$IS_FOLLOWER" = "true" ]; then
+    # Create flag file to indicate follower mode
+    echo "$LEADER_IP" > ${starrocks_data_path}/fe/.follower_mode
+fi
+
 sudo tee /etc/systemd/system/starrocks-fe.service > /dev/null <<EOF
 [Unit]
 Description=StarRocks Frontend
@@ -86,7 +94,36 @@ Environment="JAVA_HOME=/usr/lib/jvm/$JAVA_PACKAGE.x86_64/"
 Environment="STARROCKS_HOME=${starrocks_data_path}"
 Environment="LD_LIBRARY_PATH=/usr/lib/jvm/$JAVA_PACKAGE.x86_64/lib/server/"
 Environment="JAVA_OPTS=-Djava.net.preferIPv4Stack=true -Xmx${java_heap_size_mb}m -XX:+UseG1GC -Djava.security.policy=${starrocks_data_path}/conf/udf_security.policy"
-ExecStart=${starrocks_data_path}/fe/bin/start_fe.sh
+ExecStartPre=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then \
+    LEADER=\$(cat ${starrocks_data_path}/fe/.follower_mode); \
+    echo "Waiting for leader \$LEADER to be ready..."; \
+    for i in {1..60}; do \
+        if mysql -h \$LEADER -P 9030 -u root -e "SELECT 1" 2>/dev/null; then \
+            echo "Leader is ready!"; \
+            exit 0; \
+        fi; \
+        echo "Waiting for leader... (\$i/60)"; \
+        sleep 5; \
+    done; \
+    echo "ERROR: Leader not ready after 5 minutes"; \
+    exit 1; \
+fi'
+ExecStart=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then \
+    LEADER=\$(cat ${starrocks_data_path}/fe/.follower_mode); \
+    echo "Starting as follower, joining leader at \$LEADER:9010"; \
+    ${starrocks_data_path}/fe/bin/start_fe.sh --helper \$LEADER:9010; \
+else \
+    echo "Starting as leader"; \
+    ${starrocks_data_path}/fe/bin/start_fe.sh; \
+fi'
+ExecStartPost=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then \
+    LEADER=\$(cat ${starrocks_data_path}/fe/.follower_mode); \
+    MY_IP=\$(hostname -I | awk "{print \$1}"); \
+    echo "Waiting for FE to start..."; \
+    sleep 30; \
+    echo "Registering with leader as follower..."; \
+    mysql -h \$LEADER -P 9030 -u root -e "ALTER SYSTEM ADD FOLLOWER \"\$MY_IP:9010\";" || echo "Failed to register, may already be registered"; \
+fi'
 ExecStop=${starrocks_data_path}/fe/bin/stop_fe.sh
 Restart=always
 
@@ -97,3 +134,15 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable starrocks-fe
 sudo systemctl start starrocks-fe
+
+# Add backup cronjob
+sudo tar -czf /tmp/fe_meta_backup_$(date +%Y-%m-%d-%H-%M-%S).tar.gz -C /opt/starrocks/fe meta/
+aws s3 cp /tmp/fe_meta_backup_*.tar.gz s3://${bucket}/backup/
+rm -f /tmp/fe_meta_backup_*.tar.gz
+
+# Restore metadata on new instance
+sudo systemctl stop starrocks-fe
+aws s3 cp s3://radiant-tst-star-rocks-qa/backup/fe_meta_backup_2025-11-20-16-12-33.tar.gz /tmp/
+sudo mv /opt/starrocks/fe/meta /opt/starrocks/fe/meta.old
+sudo tar -xzf /tmp/fe_meta_backup_2025-11-20-16-12-33.tar.gz -C /opt/starrocks/fe/
+sudo mv /opt/starrocks/fe/meta.old/image/ROLE /opt/starrocks/fe/meta/image/ROLE
