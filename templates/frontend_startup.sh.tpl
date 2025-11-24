@@ -94,22 +94,7 @@ Environment="JAVA_HOME=/usr/lib/jvm/$JAVA_PACKAGE.x86_64/"
 Environment="STARROCKS_HOME=${starrocks_data_path}"
 Environment="LD_LIBRARY_PATH=/usr/lib/jvm/$JAVA_PACKAGE.x86_64/lib/server/"
 Environment="JAVA_OPTS=-Djava.net.preferIPv4Stack=true -Xmx${java_heap_size_mb}m -XX:+UseG1GC -Djava.security.policy=${starrocks_data_path}/conf/udf_security.policy"
-ExecStartPre=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then \
-    echo "Waiting for leader ${leader_ip} to be ready..."; \
-    for i in {1..60}; do \
-        if mysql -h ${leader_ip} -P 9030 -u root -e "SELECT 1" 2>/dev/null; then \
-            echo "Leader is ready!"; \
-            exit 0; \
-        fi; \
-        echo "Waiting for leader..."; \
-        sleep 5; \
-    done; \
-    echo "ERROR: Leader not ready after 5 minutes"; \
-    exit 1; \
-fi'
 ExecStart=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then \
-    echo "Registering with leader as follower..."; \
-    mysql -h ${leader_ip} -P 9030 -u root -e "ALTER SYSTEM ADD FOLLOWER \"$(hostname -I | awk "{print $1}" | xargs):9010\";" || echo "Failed to register, may already be registered"; \
     echo "Starting as follower, joining leader at ${leader_ip}:9010"; \
     ${starrocks_data_path}/fe/bin/start_fe.sh --helper ${leader_ip}:9010; \
 else \
@@ -122,6 +107,20 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+
+if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then
+   echo "Waiting for Frontend (FE) to be available..."
+   for i in {1..60}; do
+      if mysql -h ${leader_ip} -P 9030 -u root -e "SELECT 1" 2>/dev/null; then
+               echo "Leader is ready!";
+      fi;
+         echo "Waiting for leader...";
+         sleep 5;
+   done;
+
+   echo "Registering Backend with Frontend..."
+   echo "ALTER SYSTEM ADD FOLLOWER \"$(hostname -I | awk '{print $1} | xargs'):9010\";" | mysql -h ${fe_host} -P 9030 -uroot
+fi
 
 sudo systemctl daemon-reload
 sudo systemctl enable starrocks-fe
