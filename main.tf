@@ -49,7 +49,7 @@ resource "aws_instance" "star_rocks_compute_nodes" {
     Starrocks_Backup  = "true"
   }
 }
-
+### TODO: Move followers into a separate TF resource so they can reference the leader by IP
 resource "aws_instance" "star_rocks_frontend" {
   count = var.frontend_instance_count
   ami                    = var.ami_id
