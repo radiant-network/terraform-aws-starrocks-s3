@@ -8,7 +8,7 @@ resource "aws_lb" "star_rocks_nlb" {
 
 # 9030 is the query port
 resource "aws_lb_target_group" "frontend_query_tg" {
-  name     = "${var.project}-frontend-tg-${var.environment}"
+  name     = "${var.project}-fe-query-tg-${var.environment}"
   port     = 9030
   protocol = "TCP"
   vpc_id   = var.vpc_id
@@ -35,7 +35,7 @@ resource "aws_lb_listener" "frontend_query_listener" {
 # 9010 is the port to register Frontends
 # Needed on NLB because new host service discovery is done through NLB DNS
 resource "aws_lb_target_group" "frontend_editlog_tg" {
-  name     = "${var.project}-frontend-editlog-tg-${var.environment}"
+  name     = "${var.project}-fe-editlog-tg-${var.environment}"
   port     = 9010
   protocol = "TCP"
   vpc_id   = var.vpc_id
