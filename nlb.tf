@@ -21,7 +21,7 @@ resource "aws_lb_target_group_attachment" "frontend_query_attachment" {
 }
 
 
-resource "aws_lb_listener" "frontend_listener" {
+resource "aws_lb_listener" "frontend_query_listener" {
   load_balancer_arn = aws_lb.star_rocks_nlb.arn
   port              = 9030
   protocol          = "TCP"
@@ -48,7 +48,7 @@ resource "aws_lb_target_group_attachment" "frontend_editlog_attachment" {
 }
 
 
-resource "aws_lb_listener" "frontend_listener" {
+resource "aws_lb_listener" "frontend_editlog_listener" {
   load_balancer_arn = aws_lb.star_rocks_nlb.arn
   port              = 9010
   protocol          = "TCP"
