@@ -113,13 +113,14 @@ if [ -f ${starrocks_data_path}/fe/.follower_mode ]; then
    for i in {1..60}; do
       if mysql -h ${leader_ip} -P 9030 -u root -e "SELECT 1" 2>/dev/null; then
                echo "Leader is ready!";
+               break
       fi;
          echo "Waiting for leader...";
          sleep 5;
    done;
 
    echo "Registering Backend with Frontend..."
-   echo "ALTER SYSTEM ADD FOLLOWER \"$(hostname -I | awk '{print $1} | xargs'):9010\";" | mysql -h ${leader_ip} -P 9030 -uroot
+   echo "ALTER SYSTEM ADD FOLLOWER \"$(hostname -I | awk '{print $1}' | xargs):9010\";" | mysql -h ${leader_ip} -P 9030 -uroot
 fi
 
 sudo systemctl daemon-reload
