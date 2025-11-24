@@ -119,7 +119,7 @@ ExecStartPost=/bin/bash -c 'if [ -f ${starrocks_data_path}/fe/.follower_mode ]; 
     echo "Waiting for FE to start..."; \
     sleep 30; \
     echo "Registering with leader as follower..."; \
-    mysql -h ${leader_ip} -P 9030 -u root -e "ALTER SYSTEM ADD FOLLOWER \"$(hostname -I | awk "{print $1}"):9010\";" || echo "Failed to register, may already be registered"; \
+    mysql -h ${leader_ip} -P 9030 -u root -e "ALTER SYSTEM ADD FOLLOWER \"$(hostname -I | awk "{print $1}" | xargs):9010\";" || echo "Failed to register, may already be registered"; \
 fi'
 ExecStop=${starrocks_data_path}/fe/bin/stop_fe.sh
 Restart=always
