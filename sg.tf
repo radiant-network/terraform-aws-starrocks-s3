@@ -11,6 +11,14 @@ resource "aws_security_group" "star_rocks_sg" {
     cidr_blocks = [data.aws_vpc.target_vpc.cidr_block] 
   }
 
+  # Frontend Edit Log Port (internal FE communications)
+  ingress {
+    from_port = 9010
+    to_port         = 9010
+    protocol        = "tcp"
+    cidr_blocks = [data.aws_vpc.target_vpc.cidr_block] 
+  }
+
   # Let Bastion access backend HTTP stats
   ingress {
     from_port = 8030

@@ -20,6 +20,12 @@ resource "aws_lb_target_group_attachment" "frontend_query_attachment" {
   target_id        = each.value
 }
 
+resource "aws_lb_target_group_attachment" "fe_follower_query_attachment" {
+  for_each         = { for idx, id in aws_instance.star_rocks_frontend_followers.*.id : idx => id }
+  target_group_arn = aws_lb_target_group.frontend_query_tg.arn
+  target_id        = each.value
+}
+
 
 resource "aws_lb_listener" "frontend_query_listener" {
   load_balancer_arn = aws_lb.star_rocks_nlb.arn
@@ -29,33 +35,6 @@ resource "aws_lb_listener" "frontend_query_listener" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.frontend_query_tg.arn
-  }
-}
-
-# 9010 is the port to register Frontends
-# Needed on NLB because new host service discovery is done through NLB DNS
-resource "aws_lb_target_group" "frontend_editlog_tg" {
-  name     = "${var.project}-fe-editlog-tg-${var.environment}"
-  port     = 9010
-  protocol = "TCP"
-  vpc_id   = var.vpc_id
-}
-
-resource "aws_lb_target_group_attachment" "frontend_editlog_attachment" {
-  for_each         = { for idx, id in aws_instance.star_rocks_frontend.*.id : idx => id }
-  target_group_arn = aws_lb_target_group.frontend_editlog_tg.arn
-  target_id        = each.value
-}
-
-
-resource "aws_lb_listener" "frontend_editlog_listener" {
-  load_balancer_arn = aws_lb.star_rocks_nlb.arn
-  port              = 9010
-  protocol          = "TCP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend_editlog_tg.arn
   }
 }
 
