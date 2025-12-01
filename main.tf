@@ -97,7 +97,7 @@ resource "aws_instance" "star_rocks_frontend" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-fe-${var.environment}"
+    Name                 = "${var.project}-fe-${var.environment}-1"
     Application          = "${var.project}-fe"
     Description          = "Instance for ${var.project}"
     Starrocks_Backup  = "true"
@@ -256,7 +256,7 @@ resource "aws_instance" "star_rocks_frontend_followers" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-fe-follower-${var.environment}"
+    Name                 = "${var.project}-fe-${var.environment}-${count.index + 2}" # 1 for zero index, 1 for leader
     Application          = "${var.project}-fe"
     Description          = "Instance for ${var.project}"
     Starrocks_Backup  = "true"
