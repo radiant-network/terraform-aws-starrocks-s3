@@ -34,17 +34,15 @@ cat >> ${starrocks_data_path}/fe/bin/start_sysd_daemon.sh << EOF
 LEADER_IP=$(aws ssm get-parameter --name ${ssm_parameter_name} --region ${region} --output text --query "Parameter.Value")
 MY_IP=$(hostname -I | awk '{print $1}' | xargs)
 
-echo "Leader: $$LEADER_IP"
-echo "My IP: $$MY_IP"
+echo "Leader: $LEADER_IP"
+echo "My IP: $MY_IP"
 
-rm ${starrocks_data_path}/fe/.follower_mode
-
-if [[ $$LEADER_IP == $$MY_IP ]]; then
+if [[ $LEADER_IP == $MY_IP ]]; then
    echo "Starting as leader"
    ${starrocks_data_path}/fe/bin/start_fe.sh
 else
-   echo "Starting as follower, joining leader at $$LEADER_IP:9010"
-   ${starrocks_data_path}/fe/bin/start_fe.sh --helper $$LEADER_IP:9010
+   echo "Starting as follower, joining leader at $LEADER_IP:9010"
+   ${starrocks_data_path}/fe/bin/start_fe.sh --helper $LEADER_IP:9010
 
 
 EOF
@@ -118,10 +116,10 @@ EOF
 
 LEADER_IP=$(aws ssm get-parameter --name ${ssm_parameter_name} --region ${region} --output text --query "Parameter.Value")
 MY_IP=$(hostname -I | awk '{print $1}' | xargs)
-if [[ $$LEADER_IP == $$MY_IP ]]; then
+if [[ $LEADER_IP != $MY_IP ]]; then
    echo "Waiting for Frontend (FE) to be available..."
    for i in {1..60}; do
-      if mysql -h $$LEADER_IP -P 9030 -u root -e "SELECT 1" 2>/dev/null; then
+      if mysql -h $LEADER_IP -P 9030 -u root -e "SELECT 1" 2>/dev/null; then
                echo "Leader is ready!";
                break
       fi;
@@ -130,7 +128,7 @@ if [[ $$LEADER_IP == $$MY_IP ]]; then
    done;
 
    echo "Registering Backend with Frontend..."
-   echo "ALTER SYSTEM ADD FOLLOWER \"$$MY_IP:9010\";" | mysql -h $$LEADER_IP -P 9030 -uroot
+   echo "ALTER SYSTEM ADD FOLLOWER \"$MY_IP:9010\";" | mysql -h $LEADER_IP -P 9030 -uroot
 fi
 
 sudo systemctl daemon-reload
