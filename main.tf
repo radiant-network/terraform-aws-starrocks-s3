@@ -12,7 +12,7 @@ data "aws_vpc" "target_vpc" {
 resource "aws_ssm_parameter" "leader_ip" {
   name = "${var.project}-${var.environment}-leader-ip"
   type = "String"
-  value = ""
+  value = aws_instance.star_rocks_frontend.private_ip
 }
 
 
