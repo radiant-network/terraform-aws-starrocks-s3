@@ -15,9 +15,9 @@ resource "aws_iam_role" "star_rocks_role" {
   })
 }
 
-resource "aws_iam_policy" "s3_policy" {
-  name        = "${var.project}-${var.environment}-s3-policy"
-  description = "Allows Star Rocks EC2 instances to access S3"
+resource "aws_iam_policy" "cluster_policy" {
+  name        = "${var.project}-${var.environment}-policy"
+  description = "Allows Star Rocks EC2 instances to access S3 and SSM"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -42,6 +42,16 @@ resource "aws_iam_policy" "s3_policy" {
           "arn:aws:s3:::${var.starrocks_bucket}",
           "arn:aws:s3:::${var.starrocks_bucket}/*"
         ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = [
+          "ssm:GetParameter",
+          "ssm:GetParameters"
+        ]
+        Resource = [
+          "${aws_ssm_parameter.leader_ip.arn}"
+        ]
       }
     ]
   })
@@ -49,7 +59,7 @@ resource "aws_iam_policy" "s3_policy" {
 
 resource "aws_iam_role_policy_attachment" "s3_attach" {
   role       = aws_iam_role.star_rocks_role.name
-  policy_arn = aws_iam_policy.s3_policy.arn
+  policy_arn = aws_iam_policy.cluster_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ssm_attach" {

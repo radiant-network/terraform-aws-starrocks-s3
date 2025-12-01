@@ -8,6 +8,12 @@ data "aws_vpc" "target_vpc" {
   id = var.vpc_id
 }
 
+# Manually controlled leader IP node for upgrades
+resource "aws_ssm_parameter" "leader_ip" {
+  name = "${var.project}-${var.environment}-leader-ip"
+  type = "String"
+}
+
 
 resource "aws_instance" "star_rocks_compute_nodes" {
   count = var.compute_node_instance_count
@@ -20,6 +26,8 @@ resource "aws_instance" "star_rocks_compute_nodes" {
     fe_query_port = 9030
     vpc_cidr = data.aws_vpc.target_vpc.cidr_block
     java_heap_size_mb = var.compute_node_heap_size
+    region = var.region
+    ssm_parameter_name = aws_ssm_parameter.leader_ip.name
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
@@ -50,7 +58,6 @@ resource "aws_instance" "star_rocks_compute_nodes" {
   }
 }
 resource "aws_instance" "star_rocks_frontend" {
-  count = 1 # Keep as a count for now until ETL is run to avoid deleting the leader
   ami                    = var.ami_id
   instance_type          = var.frontend_instance_type
   user_data = templatefile("${path.module}/templates/frontend_startup.sh.tpl", {
@@ -60,8 +67,6 @@ resource "aws_instance" "star_rocks_frontend" {
     bucket = "${var.starrocks_bucket}"
     vpc_cidr = data.aws_vpc.target_vpc.cidr_block
     java_heap_size_mb = var.frontend_heap_size
-    is_follower = "false"
-    leader_ip = ""
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
@@ -207,6 +212,7 @@ resource "aws_instance" "upgrade_compute_nodes" {
   }
 }
 
+# Keeping this separate from the other front end for now, because I don't want to delete all the FE nodes at once and lose data
 resource "aws_instance" "star_rocks_frontend_followers" {
   count =  var.frontend_instance_count - 1 # Subtract the leader
   ami                    = var.ami_id
@@ -218,8 +224,8 @@ resource "aws_instance" "star_rocks_frontend_followers" {
     bucket = "${var.starrocks_bucket}"
     vpc_cidr = data.aws_vpc.target_vpc.cidr_block
     java_heap_size_mb = var.frontend_heap_size
-    is_follower = "true"
-    leader_ip = aws_instance.star_rocks_frontend[0].private_ip
+    region = var.region
+    ssm_parameter_name = aws_ssm_parameter.leader_ip.name
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
