@@ -13,6 +13,12 @@ resource "aws_ssm_parameter" "leader_ip" {
   name = "${var.project}-${var.environment}-leader-ip"
   type = "String"
   value = "replace_me"
+
+  lifecycle {
+    ignore_changes = [ 
+      value
+     ]
+  }
 }
 
 
