@@ -17,17 +17,19 @@ mysql -h 127.0.0.1 -P 9030 -u root
 ```
 
 ## Upgrade Process
-Currently full blue/green is not supported. Instead, we do a modified canary process for upgrades.
-1. Change the value for `starrocks_upgrade_version` in `variables.tfvars` for your environment.
-2. Create a PR, get reviews, and merge.
-3. This will create a new set of instances with the new version (upgrade or downgrade).
-4. Backup the old Frontend's metadata manually through SSM
-5. Migrate the metadata to the new Frontend manually through SSM
-6. Verify new CNs joined the old FE correctly.
-7. Verify new FE has metadata successfully.
-8. Now set the `starrocks_upgrade_version` to blank, and the `starrocks_verison` to the new version.
-9. This will delete the upgraded instances and the old version's instances. A new set of upgraded instances will be created.
-10. Migrate the metadata on the new FE again.
+We do a modified canary process for upgrades.
+1. Change the value for `starrocks_upgrade_version` in `variables.tfvars` for your environment. Increase the frontend nodes to 3.
+2. Ensure the SSM parameter for the leader IP is up to date. Create a PR, get reviews, and merge.
+3. This will add 2 new nodes to the cluster, both upgraded. They will join the cluster and syncronize their data.
+4. Make sure the new FE nodes join the old cleanly. You can query `SHOW FRONTENDS;` on the old FE.
+6. Verify new CNs joined the old FE correctly. 
+7. Verify new FEs have data in their databases.
+8. Make a new PR with `starrocks_version` matching the upgraded version, get reviews, and merge.
+9. This will delete the old leader, forcing a leader election. Watch for the new leader and update the SSM parameter accordingly.
+10. Depending on where in the new instance initialization you updated the SSM parameter, you may need to restart the systemd service on the new instance.
+11. Go through the database and delete any terminated CNs and FE nodes.
+12. You may now scale down the FEs to 1 if desired.
+
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
