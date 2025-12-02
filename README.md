@@ -28,7 +28,7 @@ We do a modified canary process for upgrades.
 9. This will delete the old leader, forcing a leader election. Watch for the new leader and update the SSM parameter accordingly.
 10. Depending on where in the new instance initialization you updated the SSM parameter, you may need to restart the systemd service on the new instance.
 11. Go through the database and delete any terminated CNs and FE nodes.
-12. You may now scale down the FEs to 1 if desired.
+12. You may now scale down the FEs to 1 if desired. If you delete FEs, be sure to remove them from the MySQL database first (`ALTER SYSTEM DROP FOLLOWER '{IP}:9010'`) before terminating the instances.
 
 
 <!-- BEGIN_TF_DOCS -->

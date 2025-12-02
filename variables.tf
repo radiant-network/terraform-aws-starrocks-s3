@@ -6,7 +6,7 @@ variable "region" {
 }
 
 variable "project" {
-    default = "star-rocks"
+  default = "star-rocks"
 }
 
 variable "starrocks_bucket" {

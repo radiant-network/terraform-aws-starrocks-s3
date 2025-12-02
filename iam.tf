@@ -1,5 +1,5 @@
 resource "aws_iam_role" "star_rocks_role" {
-  name        = "${var.project}-${var.environment}-role"
+  name = "${var.project}-${var.environment}-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -23,8 +23,8 @@ resource "aws_iam_policy" "cluster_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = [
+        Effect = "Allow"
+        Action = [
           "s3:GetObject",
           "s3:PutObject",
           "s3:ListBucket",
@@ -44,8 +44,8 @@ resource "aws_iam_policy" "cluster_policy" {
         ]
       },
       {
-        Effect   = "Allow"
-        Action   = [
+        Effect = "Allow"
+        Action = [
           "ssm:GetParameter",
           "ssm:GetParameters"
         ]
@@ -63,7 +63,7 @@ resource "aws_iam_role_policy_attachment" "s3_attach" {
 }
 
 resource "aws_iam_role_policy_attachment" "ssm_attach" {
-  role = aws_iam_role.star_rocks_role.name
+  role       = aws_iam_role.star_rocks_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
@@ -80,7 +80,7 @@ resource "aws_iam_instance_profile" "star_rocks_instance_profile" {
 }
 
 resource "aws_iam_role" "monitoring_role" {
-  name        = "${var.project}-${var.environment}-monitoring-role"
+  name = "${var.project}-${var.environment}-monitoring-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -104,8 +104,8 @@ resource "aws_iam_policy" "monitoring_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = [
+        Effect = "Allow"
+        Action = [
           "cloudwatch:ListMetrics",
           "cloudwatch:GetMetricStatistics",
           "cloudwatch:GetMetricData",
@@ -149,7 +149,7 @@ resource "aws_iam_role_policy_attachment" "monitoring_attach" {
 }
 
 resource "aws_iam_role_policy_attachment" "monitoring_ssm_attach" {
-  role = aws_iam_role.monitoring_role.name
+  role       = aws_iam_role.monitoring_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 

@@ -23,7 +23,7 @@ resource "aws_dlm_lifecycle_policy" "ebs_snapshots" {
       }
 
       retain_rule {
-        count = 7  # Keep last 7 snapshots
+        count = 7 # Keep last 7 snapshots
       }
 
       copy_tags = true

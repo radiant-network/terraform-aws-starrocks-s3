@@ -10,29 +10,29 @@ data "aws_vpc" "target_vpc" {
 
 # Manually controlled leader IP node for upgrades
 resource "aws_ssm_parameter" "leader_ip" {
-  name = "${var.project}-${var.environment}-leader-ip"
-  type = "String"
+  name  = "${var.project}-${var.environment}-leader-ip"
+  type  = "String"
   value = "replace_me"
 
   lifecycle {
-    ignore_changes = [ 
+    ignore_changes = [
       value
-     ]
+    ]
   }
 }
 
 
 resource "aws_instance" "star_rocks_compute_nodes" {
-  count = var.compute_node_instance_count
-  ami                    = var.ami_id
-  instance_type          = var.compute_node_instance_type
+  count         = var.compute_node_instance_count
+  ami           = var.ami_id
+  instance_type = var.compute_node_instance_type
   user_data = templatefile("${path.module}/templates/compute_node_startup.sh.tpl", {
-    starrocks_version        = var.star_rocks_version
+    starrocks_version   = var.star_rocks_version
     starrocks_data_path = var.starrocks_data_path
-    fe_host = aws_route53_record.private_star_rocks_dns.fqdn
-    fe_query_port = 9030
-    vpc_cidr = data.aws_vpc.target_vpc.cidr_block
-    java_heap_size_mb = var.compute_node_heap_size
+    fe_host             = aws_route53_record.private_star_rocks_dns.fqdn
+    fe_query_port       = 9030
+    vpc_cidr            = data.aws_vpc.target_vpc.cidr_block
+    java_heap_size_mb   = var.compute_node_heap_size
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
@@ -41,10 +41,10 @@ resource "aws_instance" "star_rocks_compute_nodes" {
   ebs_optimized          = true
   monitoring             = true
   volume_tags = {
-    Name              = "${var.project}-cn-${var.environment}-volume"
-    Application       = var.project
-    Description       = "Instance for ${var.project}"
-    Starrocks_Backup  = "true"
+    Name             = "${var.project}-cn-${var.environment}-volume"
+    Application      = var.project
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "true"
   }
   root_block_device {
     volume_type = "standard"
@@ -56,24 +56,24 @@ resource "aws_instance" "star_rocks_compute_nodes" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-cn-${var.environment}"
-    Application          = "${var.project}-cn"
-    Description          = "Instance for ${var.project}"
-    Starrocks_Backup  = "true"
+    Name             = "${var.project}-cn-${var.environment}"
+    Application      = "${var.project}-cn"
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "true"
   }
 }
 resource "aws_instance" "star_rocks_frontend" {
-  ami                    = var.ami_id
-  instance_type          = var.frontend_instance_type
+  ami           = var.ami_id
+  instance_type = var.frontend_instance_type
   user_data = templatefile("${path.module}/templates/frontend_startup.sh.tpl", {
-    starrocks_version        = var.star_rocks_version
+    starrocks_version   = var.star_rocks_version
     starrocks_data_path = var.starrocks_data_path
-    region = var.region
-    bucket = "${var.starrocks_bucket}"
-    vpc_cidr = data.aws_vpc.target_vpc.cidr_block
-    java_heap_size_mb = var.frontend_heap_size
-    region = var.region
-    ssm_parameter_name = aws_ssm_parameter.leader_ip.name
+    region              = var.region
+    bucket              = "${var.starrocks_bucket}"
+    vpc_cidr            = data.aws_vpc.target_vpc.cidr_block
+    java_heap_size_mb   = var.frontend_heap_size
+    region              = var.region
+    ssm_parameter_name  = aws_ssm_parameter.leader_ip.name
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
@@ -82,10 +82,10 @@ resource "aws_instance" "star_rocks_frontend" {
   ebs_optimized          = true
   monitoring             = true
   volume_tags = {
-    Name              = "${var.project}-fe-${var.environment}-volume"
-    Application       = var.project
-    Description       = "Instance for ${var.project}"
-    Starrocks_Backup  = "true"
+    Name             = "${var.project}-fe-${var.environment}-volume"
+    Application      = var.project
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "true"
   }
   root_block_device {
     volume_type = "standard"
@@ -97,20 +97,20 @@ resource "aws_instance" "star_rocks_frontend" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-fe-${var.environment}-1"
-    Application          = "${var.project}-fe"
-    Description          = "Instance for ${var.project}"
-    Starrocks_Backup  = "true"
+    Name             = "${var.project}-fe-${var.environment}-1"
+    Application      = "${var.project}-fe"
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "true"
   }
 }
 
 resource "aws_instance" "star_rocks_grafana" {
-  ami                    = var.ami_id
-  instance_type          = var.monitoring_instance_type
+  ami           = var.ami_id
+  instance_type = var.monitoring_instance_type
   user_data = templatefile("${path.module}/templates/grafana_startup.sh.tpl", {
     prometheus_ip = aws_instance.star_rocks_prometheus.private_ip
-    bucket = "${var.starrocks_bucket}"
-    pw_secret = "${var.project}-${var.environment}-grafana-admin-pw"
+    bucket        = "${var.starrocks_bucket}"
+    pw_secret     = "${var.project}-${var.environment}-grafana-admin-pw"
   })
   iam_instance_profile   = aws_iam_instance_profile.monitoring_instance_profile.name
   vpc_security_group_ids = [aws_security_group.grafana_sg.id]
@@ -119,10 +119,10 @@ resource "aws_instance" "star_rocks_grafana" {
   ebs_optimized          = true
   monitoring             = true
   volume_tags = {
-    Name              = "${var.project}-grafana-${var.environment}-volume"
-    Application       = var.project
-    Description       = "Instance for ${var.project}"
-    Starrocks_Backup  = "false"
+    Name             = "${var.project}-grafana-${var.environment}-volume"
+    Application      = var.project
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "false"
   }
   root_block_device {
     volume_type = "standard"
@@ -134,18 +134,18 @@ resource "aws_instance" "star_rocks_grafana" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-grafana-${var.environment}"
-    Application          = var.project
-    Description          = "Instance for ${var.project}"
-    Starrocks_Backup  = "false"
+    Name             = "${var.project}-grafana-${var.environment}"
+    Application      = var.project
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "false"
   }
 }
 
 
 resource "aws_instance" "star_rocks_prometheus" {
-  ami                    = var.ami_id
-  instance_type          = var.monitoring_instance_type
-  user_data              = templatefile("${path.module}/templates/prometheus_startup.sh.tpl", {
+  ami           = var.ami_id
+  instance_type = var.monitoring_instance_type
+  user_data = templatefile("${path.module}/templates/prometheus_startup.sh.tpl", {
     cn_tag = "${var.project}-cn"
     fe_tag = "${var.project}-fe"
   })
@@ -156,10 +156,10 @@ resource "aws_instance" "star_rocks_prometheus" {
   ebs_optimized          = true
   monitoring             = true
   volume_tags = {
-    Name              = "${var.project}-${var.environment}-volume"
-    Application       = var.project
-    Description       = "Instance for ${var.project}"
-    Starrocks_Backup  = "false"
+    Name             = "${var.project}-${var.environment}-volume"
+    Application      = var.project
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "false"
   }
   root_block_device {
     volume_type = "standard"
@@ -171,24 +171,24 @@ resource "aws_instance" "star_rocks_prometheus" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-prometheus-${var.environment}"
-    Application          = var.project
-    Description          = "Instance for ${var.project}"
-    Starrocks_Backup  = "false"
+    Name             = "${var.project}-prometheus-${var.environment}"
+    Application      = var.project
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "false"
   }
 }
 
 resource "aws_instance" "upgrade_compute_nodes" {
-  count = var.star_rocks_upgrade_version != "" ? 1 : 0
-  ami                    = var.ami_id
-  instance_type          = var.monitoring_instance_type
+  count         = var.star_rocks_upgrade_version != "" ? 1 : 0
+  ami           = var.ami_id
+  instance_type = var.monitoring_instance_type
   user_data = templatefile("${path.module}/templates/compute_node_startup.sh.tpl", {
-    starrocks_version        = var.star_rocks_upgrade_version
+    starrocks_version   = var.star_rocks_upgrade_version
     starrocks_data_path = var.starrocks_data_path
-    fe_host = aws_route53_record.private_star_rocks_dns.fqdn
-    fe_query_port = 9030
-    vpc_cidr = data.aws_vpc.target_vpc.cidr_block
-    java_heap_size_mb = var.compute_node_heap_size
+    fe_host             = aws_route53_record.private_star_rocks_dns.fqdn
+    fe_query_port       = 9030
+    vpc_cidr            = data.aws_vpc.target_vpc.cidr_block
+    java_heap_size_mb   = var.compute_node_heap_size
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
@@ -197,10 +197,10 @@ resource "aws_instance" "upgrade_compute_nodes" {
   ebs_optimized          = true
   monitoring             = true
   volume_tags = {
-    Name              = "${var.project}-cn-${var.environment}-volume"
-    Application       = var.project
-    Description       = "Instance for ${var.project}"
-    Starrocks_Backup  = "true"
+    Name             = "${var.project}-cn-${var.environment}-volume"
+    Application      = var.project
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "true"
   }
   root_block_device {
     volume_type = "standard"
@@ -212,27 +212,27 @@ resource "aws_instance" "upgrade_compute_nodes" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-cn-${var.environment}-upgrade"
-    Application          = "${var.project}-cn"
-    Description          = "Instance for ${var.project}"
-    Starrocks_Backup  = "true"
+    Name             = "${var.project}-cn-${var.environment}-upgrade"
+    Application      = "${var.project}-cn"
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "true"
   }
 }
 
 # Keeping this separate from the other front end for now, because I don't want to delete all the FE nodes at once and lose data
 resource "aws_instance" "star_rocks_frontend_followers" {
-  count =  var.frontend_instance_count - 1 # Subtract the leader
-  ami                    = var.ami_id
-  instance_type          = var.monitoring_instance_type
+  count         = var.frontend_instance_count - 1 # Subtract the leader
+  ami           = var.ami_id
+  instance_type = var.monitoring_instance_type
   user_data = templatefile("${path.module}/templates/frontend_startup.sh.tpl", {
-    starrocks_version        = var.star_rocks_upgrade_version != "" ? var.star_rocks_upgrade_version : var.star_rocks_version
+    starrocks_version   = var.star_rocks_upgrade_version != "" ? var.star_rocks_upgrade_version : var.star_rocks_version
     starrocks_data_path = var.starrocks_data_path
-    region = var.region
-    bucket = "${var.starrocks_bucket}"
-    vpc_cidr = data.aws_vpc.target_vpc.cidr_block
-    java_heap_size_mb = var.frontend_heap_size
-    region = var.region
-    ssm_parameter_name = aws_ssm_parameter.leader_ip.name
+    region              = var.region
+    bucket              = "${var.starrocks_bucket}"
+    vpc_cidr            = data.aws_vpc.target_vpc.cidr_block
+    java_heap_size_mb   = var.frontend_heap_size
+    region              = var.region
+    ssm_parameter_name  = aws_ssm_parameter.leader_ip.name
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
@@ -241,10 +241,10 @@ resource "aws_instance" "star_rocks_frontend_followers" {
   ebs_optimized          = true
   monitoring             = true
   volume_tags = {
-    Name              = "${var.project}-fe-${var.environment}-volume"
-    Application       = var.project
-    Description       = "Instance for ${var.project}"
-    Starrocks_Backup  = "true"
+    Name             = "${var.project}-fe-${var.environment}-volume"
+    Application      = var.project
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "true"
   }
   root_block_device {
     volume_type = "standard"
@@ -256,9 +256,9 @@ resource "aws_instance" "star_rocks_frontend_followers" {
     http_tokens   = "required"
   }
   tags = {
-    Name                 = "${var.project}-fe-${var.environment}-${count.index + 2}" # 1 for zero index, 1 for leader
-    Application          = "${var.project}-fe"
-    Description          = "Instance for ${var.project}"
-    Starrocks_Backup  = "true"
+    Name             = "${var.project}-fe-${var.environment}-${count.index + 2}" # 1 for zero index, 1 for leader
+    Application      = "${var.project}-fe"
+    Description      = "Instance for ${var.project}"
+    Starrocks_Backup = "true"
   }
 }

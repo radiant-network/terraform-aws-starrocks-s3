@@ -1,8 +1,8 @@
 resource "aws_lb" "star_rocks_nlb" {
-  name               = "${var.project}-nlb-${var.environment}"
-  internal           = var.internal_nlb
-  load_balancer_type = "network"
-  subnets            = [var.subnet_id]
+  name                       = "${var.project}-nlb-${var.environment}"
+  internal                   = var.internal_nlb
+  load_balancer_type         = "network"
+  subnets                    = [var.subnet_id]
   enable_deletion_protection = false
 }
 
