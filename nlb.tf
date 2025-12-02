@@ -20,16 +20,21 @@ resource "aws_lb_target_group_attachment" "frontend_query_attachment" {
   target_id        = each.value
 }
 
-resource "aws_lb_target_group_attachment" "fe_follower_query_attachment" {
-  for_each         = { for idx, id in aws_instance.star_rocks_frontend_followers.*.id : idx => id }
-  target_group_arn = aws_lb_target_group.frontend_query_tg.arn
-  target_id        = each.value
-}
-
-
 resource "aws_lb_listener" "frontend_query_listener" {
   load_balancer_arn = aws_lb.star_rocks_nlb.arn
   port              = 9030
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_query_tg.arn
+  }
+}
+
+# In case your VPN only allows port 80/443 outbound
+resource "aws_lb_listener" "frontend_https_listener" {
+  load_balancer_arn = aws_lb.star_rocks_nlb.arn
+  port              = 443
   protocol          = "TCP"
 
   default_action {
