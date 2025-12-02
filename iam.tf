@@ -1,5 +1,5 @@
 resource "aws_iam_role" "star_rocks_role" {
-  name        = "${var.project}-${var.environment}-role"
+  name = "${var.project}-${var.environment}-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -15,16 +15,16 @@ resource "aws_iam_role" "star_rocks_role" {
   })
 }
 
-resource "aws_iam_policy" "s3_policy" {
-  name        = "${var.project}-${var.environment}-s3-policy"
-  description = "Allows Star Rocks EC2 instances to access S3"
+resource "aws_iam_policy" "cluster_policy" {
+  name        = "${var.project}-${var.environment}-policy"
+  description = "Allows Star Rocks EC2 instances to access S3 and SSM"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = [
+        Effect = "Allow"
+        Action = [
           "s3:GetObject",
           "s3:PutObject",
           "s3:ListBucket",
@@ -42,6 +42,16 @@ resource "aws_iam_policy" "s3_policy" {
           "arn:aws:s3:::${var.starrocks_bucket}",
           "arn:aws:s3:::${var.starrocks_bucket}/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters"
+        ]
+        Resource = [
+          "${aws_ssm_parameter.leader_ip.arn}"
+        ]
       }
     ]
   })
@@ -49,11 +59,11 @@ resource "aws_iam_policy" "s3_policy" {
 
 resource "aws_iam_role_policy_attachment" "s3_attach" {
   role       = aws_iam_role.star_rocks_role.name
-  policy_arn = aws_iam_policy.s3_policy.arn
+  policy_arn = aws_iam_policy.cluster_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ssm_attach" {
-  role = aws_iam_role.star_rocks_role.name
+  role       = aws_iam_role.star_rocks_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
@@ -70,7 +80,7 @@ resource "aws_iam_instance_profile" "star_rocks_instance_profile" {
 }
 
 resource "aws_iam_role" "monitoring_role" {
-  name        = "${var.project}-${var.environment}-monitoring-role"
+  name = "${var.project}-${var.environment}-monitoring-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -94,8 +104,8 @@ resource "aws_iam_policy" "monitoring_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = [
+        Effect = "Allow"
+        Action = [
           "cloudwatch:ListMetrics",
           "cloudwatch:GetMetricStatistics",
           "cloudwatch:GetMetricData",
@@ -139,7 +149,7 @@ resource "aws_iam_role_policy_attachment" "monitoring_attach" {
 }
 
 resource "aws_iam_role_policy_attachment" "monitoring_ssm_attach" {
-  role = aws_iam_role.monitoring_role.name
+  role       = aws_iam_role.monitoring_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 

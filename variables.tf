@@ -6,7 +6,7 @@ variable "region" {
 }
 
 variable "project" {
-    default = "star-rocks"
+  default = "star-rocks"
 }
 
 variable "starrocks_bucket" {
@@ -59,7 +59,7 @@ variable "compute_node_heap_size" {
 }
 
 variable "frontend_instance_count" {
-  default = "1"
+  default = "3"
 }
 
 variable "frontend_instance_type" {
@@ -75,7 +75,7 @@ variable "monitoring_instance_type" {
 }
 
 variable "star_rocks_version" {
-  default = "3.3.11"
+  default = "3.4.4"
 }
 
 variable "star_rocks_upgrade_version" {

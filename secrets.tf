@@ -7,8 +7,8 @@ resource "aws_secretsmanager_secret" "grafana_admin_pw" {
 }
 
 resource "random_password" "initial_password" {
-  length           = 16
-  special          = false
+  length  = 16
+  special = false
 }
 
 # Replace manually with real password after deployment, may need to recreate

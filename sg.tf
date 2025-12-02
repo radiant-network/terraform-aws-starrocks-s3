@@ -5,39 +5,47 @@ resource "aws_security_group" "star_rocks_sg" {
 
   # Frontend Query Port
   ingress {
-    from_port = 9030
-    to_port         = 9030
-    protocol        = "tcp"
-    cidr_blocks = [data.aws_vpc.target_vpc.cidr_block] 
+    from_port   = 9030
+    to_port     = 9030
+    protocol    = "tcp"
+    cidr_blocks = [data.aws_vpc.target_vpc.cidr_block]
+  }
+
+  # Frontend Edit Log Port (internal FE communications)
+  ingress {
+    from_port   = 9010
+    to_port     = 9010
+    protocol    = "tcp"
+    cidr_blocks = [data.aws_vpc.target_vpc.cidr_block]
   }
 
   # Let Bastion access backend HTTP stats
   ingress {
-    from_port = 8030
-    to_port         = 8030
-    protocol        = "tcp"
-    cidr_blocks = [data.aws_vpc.target_vpc.cidr_block] 
+    from_port   = 8030
+    to_port     = 8030
+    protocol    = "tcp"
+    cidr_blocks = [data.aws_vpc.target_vpc.cidr_block]
   }
 
   ingress {
-    from_port = 8040
+    from_port       = 8040
     to_port         = 8040
     protocol        = "tcp"
-    security_groups = [aws_security_group.prometheus_sg.id] 
+    security_groups = [aws_security_group.prometheus_sg.id]
   }
 
   ingress {
-    from_port = 8030
+    from_port       = 8030
     to_port         = 8030
     protocol        = "tcp"
-    security_groups = [aws_security_group.prometheus_sg.id] 
+    security_groups = [aws_security_group.prometheus_sg.id]
   }
 
   ingress {
     from_port = 0
-    to_port = 0
-    protocol = "-1"
-    self = true
+    to_port   = 0
+    protocol  = "-1"
+    self      = true
   }
 
   egress {
@@ -58,9 +66,9 @@ resource "aws_security_group" "grafana_sg" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port = 3000
-    to_port         = 3000
-    protocol        = "tcp"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
     cidr_blocks = [data.aws_vpc.target_vpc.cidr_block]
   }
 
@@ -82,10 +90,10 @@ resource "aws_security_group" "prometheus_sg" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port = 9090
+    from_port       = 9090
     to_port         = 9090
     protocol        = "tcp"
-    security_groups = [aws_security_group.grafana_sg.id] 
+    security_groups = [aws_security_group.grafana_sg.id]
   }
 
   egress {

@@ -30,6 +30,25 @@ STARROCKS_HOME=${starrocks_data_path}
 EOF
 
 
+cat > ${starrocks_data_path}/fe/bin/start_sysd_daemon.sh << EOF
+#!/bin/bash
+LEADER_IP=\$(aws ssm get-parameter --name ${ssm_parameter_name} --region ${region} --output text --query "Parameter.Value")
+MY_IP=\$(hostname -I | awk '{print $1}' | xargs)
+
+echo "Leader: \$LEADER_IP"
+echo "My IP: \$MY_IP"
+
+if [[ \$LEADER_IP == \$MY_IP ]]; then
+   echo "Starting as leader"
+   ${starrocks_data_path}/fe/bin/start_fe.sh
+else
+   echo "Starting as follower, joining leader at \$LEADER_IP:9010"
+   ${starrocks_data_path}/fe/bin/start_fe.sh --helper \$LEADER_IP:9010
+fi
+EOF
+chmod +x ${starrocks_data_path}/fe/bin/start_sysd_daemon.sh
+
+
 cat >> /etc/rc.d/rc.local << EOF
 if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
    echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
@@ -75,6 +94,7 @@ enable_profile_log = false
 audit_log_delete_age = 14d
 EOF
 
+
 sudo tee /etc/systemd/system/starrocks-fe.service > /dev/null <<EOF
 [Unit]
 Description=StarRocks Frontend
@@ -86,13 +106,30 @@ Environment="JAVA_HOME=/usr/lib/jvm/$JAVA_PACKAGE.x86_64/"
 Environment="STARROCKS_HOME=${starrocks_data_path}"
 Environment="LD_LIBRARY_PATH=/usr/lib/jvm/$JAVA_PACKAGE.x86_64/lib/server/"
 Environment="JAVA_OPTS=-Djava.net.preferIPv4Stack=true -Xmx${java_heap_size_mb}m -XX:+UseG1GC -Djava.security.policy=${starrocks_data_path}/conf/udf_security.policy"
-ExecStart=${starrocks_data_path}/fe/bin/start_fe.sh
+ExecStart=${starrocks_data_path}/fe/bin/start_sysd_daemon.sh
 ExecStop=${starrocks_data_path}/fe/bin/stop_fe.sh
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
 EOF
+
+LEADER_IP=$(aws ssm get-parameter --name ${ssm_parameter_name} --region ${region} --output text --query "Parameter.Value")
+MY_IP=$(hostname -I | awk '{print $1}' | xargs)
+if [[ $LEADER_IP != $MY_IP ]]; then
+   echo "Waiting for Frontend (FE) to be available..."
+   for i in {1..60}; do
+      if mysql -h $LEADER_IP -P 9030 -u root -e "SELECT 1" 2>/dev/null; then
+               echo "Leader is ready!";
+               break
+      fi;
+         echo "Waiting for leader...";
+         sleep 5;
+   done;
+
+   echo "Registering Backend with Frontend..."
+   echo "ALTER SYSTEM ADD FOLLOWER \"$MY_IP:9010\";" | mysql -h $LEADER_IP -P 9030 -uroot
+fi
 
 sudo systemctl daemon-reload
 sudo systemctl enable starrocks-fe
