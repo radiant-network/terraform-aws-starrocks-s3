@@ -12,6 +12,9 @@ locals {
   # When upgrading StarRocks, new FE and CN nodes should use the new version 
   # to test compatibility. Otherwise use the same version as the leader
   canary_version = var.star_rocks_upgrade_version != "" ? var.star_rocks_upgrade_version : var.star_rocks_version
+  # Extra canary FE and CN nodes are added to teh instance count automatically.
+  # Two FE nodes are needed to avoid leader election issues (cluster needs a minimum of 3 FEs)
+  canary_frontend_node_count = var.star_rocks_upgrade_version != "" ? var.frontend_instance_count + 2 : var.frontend_instance_count
   canary_compute_node_count = var.star_rocks_upgrade_version != "" ? var.compute_node_instance_count + 1 : var.compute_node_instance_count
 }
 
@@ -29,7 +32,7 @@ resource "aws_ssm_parameter" "leader_ip" {
 }
 
 resource "aws_instance" "star_rocks_frontend" {
-  count         = var.frontend_instance_count
+  count         = local.canary_frontend_node_count
   ami           = var.ami_id
   instance_type = var.frontend_instance_type
   user_data = templatefile("${path.module}/templates/frontend_startup.sh.tpl", {
