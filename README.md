@@ -18,8 +18,8 @@ mysql -h 127.0.0.1 -P 9030 -u root
 
 ## Upgrade Process
 We do a modified canary process for upgrades.
-1. Change the value for `starrocks_upgrade_version` in `variables.tfvars` for your environment. Increase the frontend nodes to 3.
-2. Ensure the SSM parameter for the leader IP is up to date. Create a PR, get reviews, and merge.
+1. Ensure the SSM parameter for the leader IP is up to date.
+2. Change the value for `starrocks_upgrade_version` in `variables.tfvars` for your environment.  Create a PR, get reviews, and merge.
 3. This will add 2 new nodes to the cluster, both upgraded. They will join the cluster and syncronize their data.
 4. Make sure the new FE nodes join the old cleanly. You can query `SHOW FRONTENDS;` on the old FE.
 6. Verify new CNs joined the old FE correctly. 
