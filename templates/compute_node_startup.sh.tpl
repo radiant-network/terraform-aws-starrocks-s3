@@ -88,3 +88,5 @@ done
 
 echo "Registering Backend with Frontend..."
 echo "ALTER SYSTEM ADD COMPUTE NODE \"$(hostname -I | awk '{print $1}'):9050\";" | mysql -h ${fe_host} -P ${fe_query_port} -uroot
+
+${additional_cn_user_data}

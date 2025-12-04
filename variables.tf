@@ -94,3 +94,10 @@ variable "additional_policy_arns" {
   default = []
 }
 
+variable "additional_fe_user_data" {
+  default = ""
+}
+
+variable "additional_cn_user_data" {
+  default = ""
+}
