@@ -134,3 +134,5 @@ fi
 sudo systemctl daemon-reload
 sudo systemctl enable starrocks-fe
 sudo systemctl start starrocks-fe
+
+${additional_fe_user_data}

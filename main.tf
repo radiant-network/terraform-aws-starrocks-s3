@@ -44,6 +44,7 @@ resource "aws_instance" "star_rocks_frontend" {
     java_heap_size_mb   = var.frontend_heap_size
     region              = var.region
     ssm_parameter_name  = aws_ssm_parameter.leader_ip.name
+    additional_fe_user_data = var.additional_fe_user_data
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
@@ -89,6 +90,7 @@ resource "aws_instance" "star_rocks_compute_nodes" {
     fe_query_port       = 9030
     vpc_cidr            = data.aws_vpc.target_vpc.cidr_block
     java_heap_size_mb   = var.compute_node_heap_size
+    additional_cn_user_data = var.additional_cn_user_data
   })
   iam_instance_profile   = aws_iam_instance_profile.star_rocks_instance_profile.name
   vpc_security_group_ids = [aws_security_group.star_rocks_sg.id]
