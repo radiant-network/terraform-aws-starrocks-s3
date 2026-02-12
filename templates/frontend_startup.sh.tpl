@@ -114,6 +114,34 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
+sudo tee /opt/starrocks/fe/conf/core-site.xml > /dev/null <<EOF
+<configuration>
+  <property>
+      <name>fs.s3.impl</name>
+      <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+   </property>
+   <property>
+    <name>hadoop.tmp.dir</name>
+    <value>/tmp/starrocks-hadoop</value>
+  </property>
+  <property>
+    <name>fs.s3a.buffer.dir</name>
+    <value>/tmp/starrocks-s3a-buffer</value>
+  </property>
+  <property>
+    <name>fs.s3a.fast.upload</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>fs.s3a.fast.upload.buffer</name>
+    <value>bytebuffer</value>
+  </property>
+</configuration>
+EOF
+
+mkdir -p /tmp/starrocks-hadoop /tmp/starrocks-s3a-buffer
+chmod 777 /tmp/starrocks-hadoop /tmp/starrocks-s3a-buffer
+
 LEADER_IP=$(aws ssm get-parameter --name ${ssm_parameter_name} --region ${region} --output text --query "Parameter.Value")
 MY_IP=$(hostname -I | awk '{print $1}' | xargs)
 if [[ $LEADER_IP != $MY_IP ]]; then
