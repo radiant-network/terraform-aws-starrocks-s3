@@ -101,3 +101,11 @@ variable "additional_fe_user_data" {
 variable "additional_cn_user_data" {
   default = ""
 }
+
+variable "additional_ingress_rules" {
+  default = ""
+}
+
+variable "additional_egress_rules" {
+  default = ""
+}

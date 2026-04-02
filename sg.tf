@@ -41,6 +41,28 @@ resource "aws_security_group" "star_rocks_sg" {
     security_groups = [aws_security_group.prometheus_sg.id]
   }
 
+  dynamic "ingress" {
+    for_each = var.additional_ingress_rules
+    content {
+      from_port   = ingress.value.port
+      description = "TCP ${ingress.value.port}"
+      to_port     = ingress.value.port
+      protocol    = "TCP"
+      cidr_blocks = ingress.value.cidr_blocks
+    }
+  }
+
+  dynamic "egress" {
+    for_each = var.additional_egress_rules
+    content {
+      description = "TCP ${egress.value.port}"
+      from_port   = egress.value.port
+      to_port     = egress.value.port
+      protocol    = "TCP"
+      cidr_blocks = egress.value.cidr_blocks
+    }
+  }
+
   ingress {
     from_port = 0
     to_port   = 0
