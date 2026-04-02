@@ -101,3 +101,21 @@ variable "additional_fe_user_data" {
 variable "additional_cn_user_data" {
   default = ""
 }
+
+variable "additional_ingress_rules" {
+  description = "Security group rules to add for ingress"
+  type = list(object({
+    port        = number
+    cidr_blocks = list(string)
+  }))
+  default = []
+}
+
+variable "additional_egress_rules" {
+  description = "Security group rules to add for egress"
+  type = list(object({
+    port        = number
+    cidr_blocks = list(string)
+  }))
+  default = []
+}
