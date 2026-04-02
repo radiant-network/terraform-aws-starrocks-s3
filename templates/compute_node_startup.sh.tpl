@@ -1,5 +1,5 @@
 #!/bin/bash
-JAVA_PACKAGE=java-11-amazon-corretto
+JAVA_PACKAGE=java-17-amazon-corretto
 sudo dnf install -y $JAVA_PACKAGE-devel mariadb105 || (sleep 120 ; sudo dnf install -y $JAVA_PACKAGE-devel mariadb105)
 
 sudo su
